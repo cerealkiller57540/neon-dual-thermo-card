@@ -122,7 +122,7 @@ The other `wgl_*` settings (`chroma`, `fresnel`, `menisc`, `ripple`, `liq_body`,
 
 **Some cards go blank on my Android phone.** Android WebViews keep at most 8 WebGL contexts per page and drop the oldest one. This card uses a single context for both thermometers. If you run many WebGL cards on one view, use `neon-dual-thermo-card` (SVG) or `wgl_enabled: false` on some of them.
 
-**Which theme is in the screenshots?** Neo Tokyo, from [Home-Assistant-Neon-Cards](https://github.com/cerealkiller57540/Home-Assistant-Neon-Cards). The card works with any theme.
+**Which theme is in the screenshots?** Neo Tokyo, the author's own dark theme (not published). The card works with any theme.
 
 ## 🌃 More neon cards
 
