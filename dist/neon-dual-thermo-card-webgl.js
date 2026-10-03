@@ -716,6 +716,160 @@ function buildDualSparkSVG(histLeft, histRight, colors, id, speed = 1, hours = 2
 // ═══════════════════════════════════════════════════════
 //  ÉDITEUR VISUEL
 // ═══════════════════════════════════════════════════════
+/* ── i18n FR/EN : la clé est la chaîne française (le français s'affiche tel quel) ── */
+let _lang = /^fr/i.test(document.documentElement.lang || '') ? 'fr' : 'en';   // HA pose <html lang> ; hass.language fait foi ensuite
+const _EN = {
+ "0 = intérieur opaque comme le SVG · 1 = on voit le fond au travers": "0 = opaque interior like the SVG · 1 = background visible through it",
+ "0 = rondes · >0 = ovales qui tournent sur elles-mêmes": "0 = round · >0 = ovals spinning on themselves",
+ "0 = vitesse fixe · 1 = lentes à froid, vives à chaud": "0 = fixed speed · 1 = slow when cold, lively when hot",
+ "1=normal, 2=ultra saturé (défaut: 1.8)": "1 = normal, 2 = ultra saturated (default: 1.8)",
+ "4 seuils séparés par virgules ex: 18, 20, 23, 26": "4 comma-separated thresholds e.g. 18, 20, 23, 26",
+ "4 seuils séparés par virgules ex: 5, 15, 22, 28": "4 comma-separated thresholds e.g. 5, 15, 22, 28",
+ "Aberration chromatique": "Chromatic aberration",
+ "Actions Droite (tap / appui long)": "Right actions (tap / long press)",
+ "Actions Gauche (tap / appui long)": "Left actions (tap / long press)",
+ "Activer GLITCH": "Enable GLITCH",
+ "Activer le verre WebGL": "Enable WebGL glass",
+ "Affichage": "Display",
+ "Anneau 1 (horizontal)": "Ring 1 (horizontal)",
+ "Anneau 2 (vertical)": "Ring 2 (vertical)",
+ "Anneaux Plasma (partagé — override dans ▶ ci-dessus)": "Plasma rings (shared — override in ▶ above)",
+ "Arcs de plasma": "Plasma arcs",
+ "Bulles d'air": "Air bubbles",
+ "CHAMBRE": "BEDROOM",
+ "Capteur secondaire droit": "Right secondary sensor",
+ "Capteur secondaire gauche": "Left secondary sensor",
+ "Capteur vent": "Wind sensor",
+ "Chaque style a ses propres réglages ci-dessous ; ceux de l'autre style sont ignorés": "Each style has its own settings below; those of the other style are ignored",
+ "Contour néon": "Neon outline",
+ "Couleur droite": "Right colour",
+ "Couleur gauche": "Left colour",
+ "Couleurs (vide = thème HA)": "Colours (empty = HA theme)",
+ "Décimales": "Decimals",
+ "Défaut (profond)": "Default (deep)",
+ "Ex: -10 pour extérieur": "e.g. -10 for outdoor",
+ "Ex: 16 pour intérieur": "e.g. 16 for indoor",
+ "Ex: 28 pour intérieur": "e.g. 28 for indoor",
+ "Ex: 35 pour extérieur": "e.g. 35 for outdoor",
+ "Fond intérieur": "Inner background",
+ "Fréquence": "Frequency",
+ "Gradient Mercure (partagé — override dans ▶ ci-dessus)": "Mercury gradient (shared — override in ▶ above)",
+ "Heures historique": "History hours",
+ "Historique": "History",
+ "Houle de surface": "Surface swell",
+ "Humidité droite": "Right humidity",
+ "Humidité gauche": "Left humidity",
+ "Humidité, secondaire…": "Humidity, secondary…",
+ "Image (GIF)": "Image (GIF)",
+ "JSON: idem": "JSON: same",
+ "JSON: more-info, navigate, call-service, toggle, none": "JSON: more-info, navigate, call-service, toggle, none",
+ "Label capteur sec. droit": "Right secondary sensor label",
+ "Label capteur sec. gauche": "Left secondary sensor label",
+ "Le chat se matérialise en hologramme glitché Silverhand sur la sparkline": "The cat materialises as a glitchy Silverhand hologram on the sparkline",
+ "Liquide": "Liquid",
+ "Lumineux (transmission + émission)": "Luminous (transmission + emission)",
+ "Lumineux : cœur clair du bulbe": "Luminous: bright bulb core",
+ "Lumineux : fond transmis": "Luminous: transmitted base",
+ "Lumineux : émission subsurface": "Luminous: subsurface emission",
+ "Max droite": "Right max",
+ "Max gauche": "Left max",
+ "Min droite": "Right min",
+ "Min gauche": "Left min",
+ "Ménisque": "Meniscus",
+ "Nervosité des arcs selon la chaleur": "Arc nervousness with heat",
+ "Nom / pièce droite": "Right name / room",
+ "Nom / pièce gauche": "Left name / room",
+ "Nom vent": "Wind name",
+ "Nombre": "Count",
+ "Off = rendu SVG d'origine (repli automatique si WebGL indisponible)": "Off = original SVG rendering (automatic fallback if WebGL is unavailable)",
+ "Optionnel — tracé discret derrière les thermos": "Optional — discreet trace behind the thermometers",
+ "Orbites / neutrons": "Orbits / neutrons",
+ "Ovales": "Ovals",
+ "Overrides Droite (optionnel)": "Right overrides (optional)",
+ "Overrides Gauche (optionnel)": "Left overrides (optional)",
+ "Plasma anneau 1 droite": "Right plasma ring 1",
+ "Plasma anneau 1 gauche": "Left plasma ring 1",
+ "Plasma anneau 2 droite": "Right plasma ring 2",
+ "Plasma anneau 2 gauche": "Left plasma ring 2",
+ "Plasma et orbites suivent aussi le bouton « Réacteur plasma » de la section Affichage": "Plasma and orbits also follow the “Plasma reactor” toggle in the Display section",
+ "Police capteurs": "Sensor font",
+ "Police nom": "Name font",
+ "Police valeur": "Value font",
+ "Polices": "Fonts",
+ "Pression (graph fond)": "Pressure (background graph)",
+ "Proba par tick (~6 s). 0.12 ≈ 1 apparition/50 s": "Chance per tick (~6 s). 0.12 ≈ 1 appearance/50 s",
+ "Profond (fond teinté + corps coloré)": "Deep (tinted base + coloured body)",
+ "Profond : opacité du corps": "Deep: body opacity",
+ "Profond : éclat": "Deep: brightness",
+ "Reflets (Fresnel / dôme)": "Reflections (Fresnel / dome)",
+ "Réacteur plasma": "Plasma reactor",
+ "Réfraction (lentille)": "Refraction (lens)",
+ "Réglé au banc d'essai le 26/07/2026 — laisser vide = valeur du banc": "Tuned on the test bench — leave empty = bench value",
+ "SALON": "LIVING ROOM",
+ "Saturation plasma": "Plasma saturation",
+ "Saturation plasma droite": "Right plasma saturation",
+ "Saturation plasma gauche": "Left plasma saturation",
+ "Seuils zones droite": "Right zone thresholds",
+ "Seuils zones gauche": "Left zone thresholds",
+ "Sprite marcheur — défaut: cat-walking-white.gif": "Walking sprite — default: cat-walking-white.gif",
+ "Style du liquide": "Liquid style",
+ "Taille": "Size",
+ "Taille (px)": "Size (px)",
+ "Taille capteurs": "Sensor size",
+ "Taille nom": "Name size",
+ "Taille valeur": "Value size",
+ "Temp max (°C)": "Max temp (°C)",
+ "Temp min (°C)": "Min temp (°C)",
+ "Température droite (requis)": "Right temperature (required)",
+ "Température gauche (requis)": "Left temperature (required)",
+ "Thermomètre Droit": "Right thermometer",
+ "Thermomètre Gauche": "Left thermometer",
+ "Transparence du verre": "Glass transparency",
+ "Unité": "Unit",
+ "Unité capteur sec. droit": "Right secondary sensor unit",
+ "Unité capteur sec. gauche": "Left secondary sensor unit",
+ "Unité vent": "Wind unit",
+ "VENT": "WIND",
+ "Vent (optionnel)": "Wind (optional)",
+ "Verre": "Glass",
+ "Vide = thème HA": "Empty = HA theme",
+ "Visibilité": "Visibility",
+ "Vitesse": "Speed",
+ "Vitesse animations": "Animation speed",
+ "Vitesse liée à la chaleur": "Speed linked to heat",
+ "Zone 1 (seuil 1)": "Zone 1 (threshold 1)",
+ "Zone 1 droite": "Right zone 1",
+ "Zone 1 gauche": "Left zone 1",
+ "Zone 2 (seuil 2)": "Zone 2 (threshold 2)",
+ "Zone 2 droite": "Right zone 2",
+ "Zone 2 gauche": "Left zone 2",
+ "Zone 3 (seuil 3)": "Zone 3 (threshold 3)",
+ "Zone 3 droite": "Right zone 3",
+ "Zone 3 gauche": "Left zone 3",
+ "Zone 4 (seuil 4)": "Zone 4 (threshold 4)",
+ "Zone 4 droite": "Right zone 4",
+ "Zone 4 gauche": "Left zone 4",
+ "Zone 5 (au-delà)": "Zone 5 (beyond)",
+ "Zone 5 droite": "Right zone 5",
+ "Zone 5 gauche": "Left zone 5",
+ "chat sur la courbe la plus froide": "cat on the coldest curve",
+ "ex: #FF3366 / rgb(var(--rgb-lavande)) / var(--primary-color)": "e.g. #FF3366 / rgb(var(--rgb-lavande)) / var(--primary-color)",
+ "Échelle (défauts partagés)": "Scale (shared defaults)",
+ "🐾 Easter-egg GLITCH": "🐾 GLITCH easter egg",
+ "🔮 Verre WebGL": "🔮 WebGL glass"
+};
+const _t = (fr) => {
+  if (_lang === 'fr' || fr == null || fr === '') return fr;
+  const k = String(fr).replace(/\s+/g, ' ').trim();
+  return _EN[k] ?? fr;
+};
+const _setLang = (h, o) => {   // o = instance (card/éditeur) : true tant que LA LANGUE APPLIQUÉE À CETTE INSTANCE n'est pas la bonne
+  const l = /^fr/i.test(String(h?.locale?.language || h?.language || '')) ? 'fr' : 'en';
+  _lang = l;
+  if (o) { if (o._li === l) return false; o._li = l; return true; }
+  return false;
+};
+
 class NeonDualThermoCardWebglEditor extends HTMLElement {
   constructor() { super(); this._config = {}; this._hass = null; this._rendered = false; }
 
@@ -725,7 +879,7 @@ class NeonDualThermoCardWebglEditor extends HTMLElement {
     if (!this._rendered) { this._rendered = true; this._render(); }
     else this._syncValues();
   }
-  set hass(h) { this._hass = h; this._fillDatalists(); }   // JAMAIS de render ici
+  set hass(h) { this._hass = h; if (_setLang(h, this) && this._rendered) this._render(); this._fillDatalists(); }   // JAMAIS de render ici
   disconnectedCallback() { this._rendered = false; }
 
   // ── Lecture / écriture config (clés imbriquées via ".") ────────────
@@ -781,17 +935,17 @@ class NeonDualThermoCardWebglEditor extends HTMLElement {
   }
 
   // ── Helpers de champ (signatures FIXES — ne pas réinventer) ────────
-  _section(t) { const d = document.createElement('div'); d.className = 'sec'; d.textContent = t; (this._appendTo || this).appendChild(d); return d; }
+  _section(t) { const d = document.createElement('div'); d.className = 'sec'; d.textContent = _t(t); (this._appendTo || this).appendChild(d); return d; }
   _group(t)   { const d = document.createElement('details'); this.appendChild(d);
-    const su = document.createElement('summary'); su.textContent = t; d.appendChild(su);
+    const su = document.createElement('summary'); su.textContent = _t(t); d.appendChild(su);
     const i = document.createElement('div'); i.className = 'adv-inner'; d.appendChild(i);
     this._appendTo = i; return d; }
-  _hint(t)    { const d = document.createElement('div'); d.className = 'hint'; d.textContent = t; (this._appendTo || this).appendChild(d); return d; }
+  _hint(t)    { const d = document.createElement('div'); d.className = 'hint'; d.textContent = _t(t); (this._appendTo || this).appendChild(d); return d; }
 
   _text(key, label, ph = '') {
-    const row = this._row(label);
+    const row = this._row(_t(label));
     const inp = document.createElement('input');
-    inp.type = 'text'; inp.placeholder = ph; inp.dataset.key = key;
+    inp.type = 'text'; inp.placeholder = _t(ph); inp.dataset.key = key;
     let v = this._read(key);
     if (Array.isArray(v)) v = v.join(', ');
     else if (typeof v === 'object' && v !== null) v = JSON.stringify(v);
@@ -801,17 +955,17 @@ class NeonDualThermoCardWebglEditor extends HTMLElement {
   }
 
   _number(key, label, { min, max, step = 1, ph = '' } = {}) {
-    const row = this._row(label);
+    const row = this._row(_t(label));
     const inp = document.createElement('input');
     inp.type = 'number'; if (min != null) inp.min = min; if (max != null) inp.max = max;
-    inp.step = step; inp.placeholder = ph; inp.dataset.key = key;
+    inp.step = step; inp.placeholder = _t(ph); inp.dataset.key = key;
     inp.value = this._read(key) ?? '';
     inp.addEventListener('input', () => { const n = parseFloat(inp.value); this._set(key, isNaN(n) ? undefined : n); });
     row.wrap.appendChild(inp); return inp;
   }
 
   _toggle(key, label, defaultOn = false) {
-    const row = this._row(label);
+    const row = this._row(_t(label));
     const cb = document.createElement('input'); cb.type = 'checkbox'; cb.dataset.key = key;
     if (defaultOn) cb.dataset.defaultOn = '1';
     const v = this._read(key);
@@ -822,9 +976,9 @@ class NeonDualThermoCardWebglEditor extends HTMLElement {
   }
 
   _color(key, label, cssDefault = null, ph = 'ex: #FF3366 / rgb(var(--rgb-lavande)) / var(--primary-color)') {
-    const row = this._row(label);
+    const row = this._row(_t(label));
     const box = document.createElement('div'); box.className = 'color-row';
-    const txt = document.createElement('input'); txt.type = 'text'; txt.placeholder = ph; txt.dataset.key = key;
+    const txt = document.createElement('input'); txt.type = 'text'; txt.placeholder = _t(ph); txt.dataset.key = key;
     txt.value = this._read(key) ?? '';
     const pick = document.createElement('input'); pick.type = 'color';
     txt._pick = pick; txt._cssDefault = cssDefault;
@@ -846,7 +1000,7 @@ class NeonDualThermoCardWebglEditor extends HTMLElement {
   }
 
   _entity(key, label, prefix = '') {
-    const row = this._row(label);
+    const row = this._row(_t(label));
     const inp = document.createElement('input'); inp.type = 'text'; inp.autocomplete = 'off';
     inp.placeholder = (prefix || 'domain') + '.…'; inp.dataset.key = key; inp.dataset.prefix = prefix;
     inp.setAttribute('list', `ndt-ent-${(prefix || 'all').replace(/[^a-z]/g, '')}`);
@@ -856,13 +1010,13 @@ class NeonDualThermoCardWebglEditor extends HTMLElement {
   }
 
   _select(key, label, options, emptyLabel = null) {
-    const w = this._row(label).wrap;
+    const w = this._row(_t(label)).wrap;
     const sel = document.createElement('select'); sel.dataset.key = key;
-    if (emptyLabel !== null) { const o = document.createElement('option'); o.value = ''; o.textContent = emptyLabel; sel.appendChild(o); }
+    if (emptyLabel !== null) { const o = document.createElement('option'); o.value = ''; o.textContent = _t(emptyLabel); sel.appendChild(o); }
     options.forEach(opt => {
       const o = document.createElement('option');
       o.value = (typeof opt === 'object') ? opt.value : opt;
-      o.textContent = (typeof opt === 'object') ? opt.label : opt;
+      o.textContent = _t((typeof opt === 'object') ? opt.label : opt);
       sel.appendChild(o);
     });
     sel.value = this._read(key) ?? '';
@@ -986,7 +1140,7 @@ class NeonDualThermoCardWebglEditor extends HTMLElement {
     this._text('unit', 'Unité', '°C');
 
     const advL = document.createElement('details'); this.appendChild(advL);
-    const sumL = document.createElement('summary'); sumL.textContent = 'Overrides Gauche (optionnel)'; advL.appendChild(sumL);
+    const sumL = document.createElement('summary'); sumL.textContent = _t('Overrides Gauche (optionnel)'); advL.appendChild(sumL);
     const innerL = document.createElement('div'); innerL.className = 'adv-inner'; advL.appendChild(innerL);
     this._appendTo = innerL;
     this._number('temp_min_left', 'Min gauche', { min: -50, max: 50, step: 1, ph: 'Ex: 16 pour intérieur' });
@@ -1004,7 +1158,7 @@ class NeonDualThermoCardWebglEditor extends HTMLElement {
     this._appendTo = null;
 
     const advR = document.createElement('details'); this.appendChild(advR);
-    const sumR = document.createElement('summary'); sumR.textContent = 'Overrides Droite (optionnel)'; advR.appendChild(sumR);
+    const sumR = document.createElement('summary'); sumR.textContent = _t('Overrides Droite (optionnel)'); advR.appendChild(sumR);
     const innerR = document.createElement('div'); innerR.className = 'adv-inner'; advR.appendChild(innerR);
     this._appendTo = innerR;
     this._number('temp_min_right', 'Min droite', { min: -50, max: 50, step: 1, ph: 'Ex: -10 pour extérieur' });
@@ -3299,6 +3453,6 @@ window.customCards = window.customCards || [];
 window.customCards.push({
   type: 'neon-dual-thermo-card-webgl',
   name: 'Neon Dual Thermometer Card (WebGL)',
-  description: 'Double thermomètre néon — verre, liquide et réacteur plasma en WebGL',
+  description: 'Neon dual thermometer — glass, liquid and plasma reactor in WebGL',
   preview: true,
 });
