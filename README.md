@@ -116,6 +116,8 @@ The other `wgl_*` settings (`chroma`, `fresnel`, `menisc`, `ripple`, `liq_body`,
 
 ## ❓ FAQ
 
+**Which languages are supported?** English and French. The editor and the card texts follow your Home Assistant language: French if it is French, English otherwise. Reload the page after changing the language.
+
 **The glass looks flat.** The WebGL card refracts the background *behind* the card. On a plain dark theme there is little to bend; on a theme with a background image the effect is much stronger.
 
 **Where is the cat?** `glitch_cat` is off by default and no image ships with the card. Point `glitch_cat_image` at your own transparent GIF or PNG (for example `/local/my-cat.gif` in `config/www/`).
