@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🌡️ Neon Dual Thermometer Card
+<img src="https://raw.githubusercontent.com/cerealkiller57540/neon-dual-thermo-card/main/images/logo.png" alt="Neon Dual Thermometer Card" width="480">
 
 **Two neon thermometers side by side for Home Assistant, with real glass, liquid and a plasma core rendered in WebGL.**
 
