@@ -11,7 +11,7 @@
 
 [![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=cerealkiller57540&repository=neon-dual-thermo-card&category=plugin)
 
-<img src="https://raw.githubusercontent.com/cerealkiller57540/neon-dual-thermo-card/main/images/main.gif" alt="Neon Dual Thermometer Card: outdoor and living-room thermometers with a plasma core, rising bubbles and a 24 h history graph" width="448">
+<img src="https://raw.githubusercontent.com/cerealkiller57540/neon-dual-thermo-card/main/images/main.webp" alt="Neon Dual Thermometer Card: outdoor and living-room thermometers with a plasma core, rising bubbles and a 24 h history graph" width="448">
 
 </div>
 
