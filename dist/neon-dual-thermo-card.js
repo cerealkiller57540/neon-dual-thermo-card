@@ -1,5 +1,5 @@
 /**
- * neon-dual-thermo-card v2.5.0
+ * neon-dual-thermo-card v2.5.2
  * Double thermomètre néon pour Home Assistant - Comparaison côte à côte
  *
  * Installation :
@@ -27,7 +27,7 @@
  *          + suppression rect shine superflu
  */
 
-const VERSION = '2.5.0';
+const VERSION = '2.5.2';
 
 // Device detection — iPad/mobile : modère les anneaux plasma (rotation ralentie +
 // glow allégé) pour soulager le GPU. Détection userAgent (fiable en paysage).

@@ -1,5 +1,5 @@
 /**
- * neon-dual-thermo-card-webgl v2.5.0
+ * neon-dual-thermo-card-webgl v2.5.2
  * Double thermomètre néon — variante WebGL de neon-dual-thermo-card
  *
  * Card SÉPARÉE : neon-dual-thermo-card.js n'est pas touchée et reste utilisable.
@@ -33,7 +33,7 @@
  * v1.0.0 : fork WebGL de neon-dual-thermo-card v2.3.0
  */
 
-const VERSION = '2.5.0';
+const VERSION = '2.5.2';
 
 // Device detection — iPad/mobile : modère les anneaux plasma (rotation ralentie +
 // glow allégé) pour soulager le GPU. Détection userAgent (fiable en paysage).
