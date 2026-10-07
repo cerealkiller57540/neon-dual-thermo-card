@@ -1,5 +1,5 @@
 /**
- * neon-dual-thermo-card-webgl v1.2.2
+ * neon-dual-thermo-card-webgl v1.2.3
  * Double thermomètre néon — variante WebGL de neon-dual-thermo-card
  *
  * Card SÉPARÉE : neon-dual-thermo-card.js n'est pas touchée et reste utilisable.
@@ -33,7 +33,7 @@
  * v1.0.0 : fork WebGL de neon-dual-thermo-card v2.3.0
  */
 
-const VERSION = '1.2.2';
+const VERSION = '1.2.3';
 
 // Device detection — iPad/mobile : modère les anneaux plasma (rotation ralentie +
 // glow allégé) pour soulager le GPU. Détection userAgent (fiable en paysage).
@@ -158,9 +158,7 @@ function buildConfig(raw) {
     glitch_cat_image:  raw.glitch_cat_image  || '/local/cat-walking-white.gif',
 
     // ── Verre WebGL ─────────────────────────────────────────────────────────
-    // Valeurs réglées à l'œil au banc d'essai (skill ha-card-preview-bench,
-    // 2026-07-26), bloc de réglages collé par l'auteur : ce ne sont PAS des nombres
-    // arbitraires, ne pas les « nettoyer » au jugé lors d'un futur passage.
+    // Constantes ajustées visuellement : ne pas les modifier sans revérifier le rendu.
     wgl_enabled:  raw.wgl_enabled ?? true,
     wgl_refract:  _num(raw.wgl_refract)  ?? 10.5,  // lentille cylindrique, en px de déplacement du fond
     wgl_chroma:   _num(raw.wgl_chroma)   ?? 1.3,   // frange rouge/bleue au bord du verre, en px
@@ -168,7 +166,7 @@ function buildConfig(raw) {
     wgl_fresnel:  _num(raw.wgl_fresnel)  ?? 0.55,  // sheen latéral, dôme, spéculaire (parité SVG à 1.00)
     wgl_menisc:   _num(raw.wgl_menisc)   ?? 1.6,   // creux concave de la surface du liquide, en px
     wgl_ripple:   _num(raw.wgl_ripple)   ?? 0.80,  // oscillation de la surface, en px
-    // Liquide : deux styles, réglés au banc liquide le 27/09 (bloc collé par l'auteur).
+    // Liquide : deux styles.
     wgl_liquid:   raw.wgl_liquid === 'lumineux' ? 'lumineux' : 'profond',
     wgl_liq_body: _num(raw.wgl_liq_body) ?? 0.56,  // profond : opacité du corps coloré (0 = fond seul)
     wgl_liq_glow: _num(raw.wgl_liq_glow) ?? 1.14,  // profond : éclat du corps coloré
@@ -178,7 +176,7 @@ function buildConfig(raw) {
     wgl_plasma:   _num(raw.wgl_plasma)   ?? 2.40,  // arcs de plasma dans le bulbe
     wgl_plasma_drive: _num(raw.wgl_plasma_drive) ?? 0.8,  // nervosité des arcs selon la chaleur (0 = fixe)
     wgl_orbits:   _num(raw.wgl_orbits)   ?? 1.55,  // 3 orbites 3D + neutron-comète
-    // Bulles d'air : bloc de réglages collé par l'auteur au banc plasma+bulles (2026-09-27)
+    // Bulles d'air
     wgl_bubbles:  _num(raw.wgl_bubbles)  ?? 0.55,  // visibilité des bulles d'air
     wgl_bubble_count: _num(raw.wgl_bubble_count) ?? 10,   // 2..12
     wgl_bubble_size:  _num(raw.wgl_bubble_size)  ?? 1.15,
@@ -804,7 +802,7 @@ const _EN = {
  "Reflets (Fresnel / dôme)": "Reflections (Fresnel / dome)",
  "Réacteur plasma": "Plasma reactor",
  "Réfraction (lentille)": "Refraction (lens)",
- "Réglé au banc d'essai le 26/07/2026 — laisser vide = valeur du banc": "Tuned on the test bench — leave empty = bench value",
+ "Laisser vide = valeur par défaut": "Leave empty = default value",
  "SALON": "LIVING ROOM",
  "Saturation plasma": "Plasma saturation",
  "Saturation plasma droite": "Right plasma saturation",
@@ -1194,7 +1192,7 @@ class NeonDualThermoCardWebglEditor extends HTMLElement {
     this._hint('1=normal, 2=ultra saturé (défaut: 1.8)');
 
     this._section('🔮 Verre WebGL');
-    this._hint('Réglé au banc d\'essai le 26/07/2026 — laisser vide = valeur du banc');
+    this._hint('Laisser vide = valeur par défaut');
     this._toggle('wgl_enabled', 'Activer le verre WebGL', true);
     this._hint('Off = rendu SVG d\'origine (repli automatique si WebGL indisponible)');
 
@@ -1279,10 +1277,9 @@ customElements.define('neon-dual-thermo-card-webgl-editor', NeonDualThermoCardWe
 // ═══════════════════════════════════════════════════════
 //  COUCHE WEBGL — le verre, le liquide, le plasma, les orbites
 // ═══════════════════════════════════════════════════════
-// Le shader ci-dessous est celui du banc d'essai (ha-card-preview-bench,
-// 2026-07-26), repris VERBATIM : chaque commentaire y consigne un piège déjà
-// payé (couture du smin, sheen f(x) seul, préimage du tonemap, champs qui
-// doivent mourir AVANT leur porte if() sinon la porte dessine un arc…).
+// Chaque commentaire du shader consigne un piège (couture du smin, sheen f(x)
+// seul, préimage du tonemap, champs qui doivent mourir AVANT leur porte if()
+// sinon la porte dessine un arc…).
 
 const NDT_REDUCED = typeof matchMedia !== 'undefined' &&
   matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1399,7 +1396,7 @@ const NDT_FS = [
 '  col=mix(col, col*0.26+uPri*0.05, inGlass*clamp(graze*1.4,0.0,1.0));',
 '  col=mix(col, col*0.88+uPri*0.02, inGlass*step(0.0,dIn)*0.5);',
 '',
-'  // --- liquide translucide, deux styles (banc liquide 27/09). L ancien',
+'  // --- liquide translucide, deux styles. L ancien',
 '  // absorb*0.45 tuait G et B du fond (~2 % sur une zone rouge) : peinture opaque.',
 '  // Trop transparent, a l inverse, delave le liquide en gris.',
 '  if (liq>0.5){',
@@ -1425,7 +1422,7 @@ const NDT_FS = [
 '  col+=mix(uZone,vec3(1.0),0.5)*exp(-dl*dl/1.05)*1.45*step(dIn,0.0);',
 '  col+=vec3(1.0)*exp(-pow((dl+1.5)/0.65,2.0))*0.30*step(dIn,0.0);',
 '',
-'  // --- bulles d air (valide au banc par l'auteur le 27/09, d apres un exemple canvas).',
+'  // --- bulles d air.',
 '  //     Ellipse qui TOURNE sur elle meme (uBDef = ovale, 0 = ronde), monte a vitesse',
 '  //     propre et derive en zigzag lent ; degrade radial dont le centre est decale',
 '  //     VERS LE HAUT (0.9 opaque -> 0.1 au bord), teinte zone eclaircie, lisere gris.',
@@ -1470,7 +1467,7 @@ const NDT_FS = [
 '      }',
 '    }',
 '  }',
-'  // --- plasma en ARCS (boule plasma), valide au banc par l'auteur le 27/09. L ancien',
+'  // --- plasma en ARCS (boule plasma). L ancien',
 '  //     raymarch fbm lisait « pate a beignet dans l huile ». 5 arcs partent du coeur,',
 '  //     restent un moment puis SAUTENT vers un nouvel angle (interpolation courte),',
 '  //     ondulent le long du rayon et scintillent. Rythme = uPlasT, integre cote JS',
@@ -1510,7 +1507,7 @@ const NDT_FS = [
 '    vec2 pb=p-vec2(CX,CY);',
 '    // Le halo des orbites doit mourir AVANT la porte if(r<1.6) — sinon elle trace un',
 '    // ARC visible la ou elle coupe la colonne (r=1.6 passe a ~2 unites au-dessus du',
-'    // bulbe : c est LA demarcation que l'auteur a surlignee). Meme lecon que le noyau',
+'    // bulbe). Meme lecon que le noyau',
 '    // plasma. La distance approx |f-1|/|grad f| sous-estime le champ lointain des',
 '    // ellipses excentriques, donc le halo exp(-d/2.4) porte jusqu a la porte.',
 '    float gfade=smoothstep(1.55,1.05,r);   // les orbites vivent a r~0.77-0.86',
@@ -1554,7 +1551,7 @@ const NDT_FS = [
 '  // --- Fresnel + reflets. Le sheen est f(x) SEUL et couvre tube ET bulbe, comme',
 '  //     le -wall-shimmer du SVG (linearGradient horizontal sur CX+-TWE, rect du',
 '  //     dome au bas du bulbe, clippe par la silhouette). Le faire dependre de la',
-'  //     normale le coupe net a la jonction : c est le bug que l'auteur a vu.',
+'  //     normale le coupe net a la jonction.',
 '  col+=mix(uPri,vec3(1.0),0.8)*pow(1.0-n.z,6.5)*inGlass*1.15*uFresnel;',
 '  float tx=clamp((p.x-(CX-TWE))/(2.0*TWE), 0.0, 1.0);',
 '  float shW=mix( mix(0.18,0.06,clamp(tx/0.22,0.0,1.0)),',
@@ -2239,7 +2236,7 @@ class NeonDualThermoCardWebgl extends HTMLElement {
            remplacé. Un <canvas> absolu en width:auto se dimensionne sur sa taille
            INTRINSÈQUE (l'attribut width, en pixels device) et right/bottom sont
            ignorés — soit un canvas dpr fois trop grand, qui déborde de la card.
-           Invisible à dpr 1, flagrant à dpr 2 (vécu au probe du 2026-07-26). */
+           Invisible à dpr 1, flagrant à dpr 2. */
         .wgl-canvas {
           position: absolute;
           inset: 0;
@@ -3129,7 +3126,7 @@ class NeonDualThermoCardWebgl extends HTMLElement {
         wall:  svg.querySelector('.outline path'),
         // uP1/uP2 : mêmes couleurs que les 2 ellipses du SVG (buildThermoSkeleton),
         // recalculées depuis la config — les ellipses n'existent pas quand
-        // show_plasma est faux, impossible de les lire dans le DOM comme au banc.
+        // show_plasma est faux, impossible de les lire dans le DOM.
         p1: ndtColorRGB(saturateHex(sc.color_plasma_ring1 || zn.zone3, sat)),
         p2: ndtColorRGB(saturateHex(sc.color_plasma_ring2 || zn.zone5, sat)),
         ready: false,

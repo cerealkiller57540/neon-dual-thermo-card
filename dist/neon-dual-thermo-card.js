@@ -747,7 +747,7 @@ const _EN = {
  "Reflets (Fresnel / dôme)": "Reflections (Fresnel / dome)",
  "Réacteur plasma": "Plasma reactor",
  "Réfraction (lentille)": "Refraction (lens)",
- "Réglé au banc d'essai le 26/07/2026 — laisser vide = valeur du banc": "Tuned on the test bench — leave empty = bench value",
+ "Laisser vide = valeur par défaut": "Leave empty = default value",
  "SALON": "LIVING ROOM",
  "Saturation plasma": "Plasma saturation",
  "Saturation plasma droite": "Right plasma saturation",
