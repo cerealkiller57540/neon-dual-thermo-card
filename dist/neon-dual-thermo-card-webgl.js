@@ -1,5 +1,5 @@
 /**
- * neon-dual-thermo-card-webgl v1.2.3
+ * neon-dual-thermo-card-webgl v2.5.0
  * Double thermomètre néon — variante WebGL de neon-dual-thermo-card
  *
  * Card SÉPARÉE : neon-dual-thermo-card.js n'est pas touchée et reste utilisable.
