@@ -27,7 +27,7 @@
  *          + suppression rect shine superflu
  */
 
-const VERSION = '2.3.0';
+const VERSION = '2.5.0';
 
 // Device detection — iPad/mobile : modère les anneaux plasma (rotation ralentie +
 // glow allégé) pour soulager le GPU. Détection userAgent (fiable en paysage).
@@ -662,6 +662,11 @@ function buildDualSparkSVG(histLeft, histRight, colors, id, speed = 1, hours = 2
 /* ── i18n FR/EN : la clé est la chaîne française (le français s'affiche tel quel) ── */
 let _lang = /^fr/i.test(document.documentElement.lang || '') ? 'fr' : 'en';   // HA pose <html lang> ; hass.language fait foi ensuite
 const _EN = {
+ "Échelle & couleurs (override)": "Scale & colours (override)",
+ "Actions (tap / appui long)": "Actions (tap / hold)",
+ "Gradient mercure": "Mercury gradient",
+ "Anneaux plasma": "Plasma rings",
+ "Partagé — chaque thermomètre peut le surcharger dans son panneau": "Shared — each thermometer can override it in its own panel",
  "0 = intérieur opaque comme le SVG · 1 = on voit le fond au travers": "0 = opaque interior like the SVG · 1 = background visible through it",
  "0 = rondes · >0 = ovales qui tournent sur elles-mêmes": "0 = round · >0 = ovals spinning on themselves",
  "0 = vitesse fixe · 1 = lentes à froid, vives à chaud": "0 = fixed speed · 1 = slow when cold, lively when hot",
@@ -879,6 +884,20 @@ class NeonDualThermoCardEditor extends HTMLElement {
 
   // ── Helpers de champ (signatures FIXES — ne pas réinventer) ────────
   _section(t) { const d = document.createElement('div'); d.className = 'sec'; d.textContent = _t(t); (this._appendTo || this).appendChild(d); return d; }
+  // Groupe repliable : buildFn() appelle les helpers, qui s'appendent DEDANS via _appendTo.
+  // L'état ouvert/fermé reste local au panneau (jamais dans _config).
+  _group(title, expanded, buildFn) {
+    const panel = document.createElement('ha-expansion-panel');
+    panel.outlined = true;
+    panel.header = _t(title);
+    if (expanded) panel.expanded = true;
+    (this._appendTo || this).appendChild(panel);
+    const prevAppendTo = this._appendTo;
+    this._appendTo = panel;
+    buildFn();
+    this._appendTo = prevAppendTo;
+    return panel;
+  }
   _hint(t)    { const d = document.createElement('div'); d.className = 'hint'; d.textContent = _t(t); (this._appendTo || this).appendChild(d); return d; }
 
   _text(key, label, ph = '') {
@@ -1017,19 +1036,30 @@ class NeonDualThermoCardEditor extends HTMLElement {
   // ── CSS commun (identique partout) ───────────────────────────────
   _css() {
     return `
+      neon-dual-thermo-card-editor {
+        --ned-label: color-mix(in srgb, var(--primary-text-color) 82%, transparent);
+        --ned-dim: color-mix(in srgb, var(--primary-text-color) 60%, transparent);
+        --ned-accent: color-mix(in srgb, var(--primary-color) 55%, var(--primary-text-color));
+        --ned-line: color-mix(in srgb, var(--primary-color) 55%, transparent);
+      }
+      neon-dual-thermo-card-editor ha-expansion-panel {
+        --outline-color: var(--ned-line);
+        --expansion-panel-summary-padding: 0 12px;
+        color: var(--primary-text-color);
+      }
       :host { display:block; padding:14px; font-family:var(--primary-font-family,Roboto,sans-serif); }
-      .sec { font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--primary-color);margin:16px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--divider-color); }
+      .sec { font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ned-accent);margin:16px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--divider-color); }
       .sec:first-child { margin-top:0; }
       .row { display:flex;align-items:center;gap:8px;margin-bottom:6px; }
-      .row label { flex:0 0 160px;font-size:12px;color:var(--secondary-text-color); }
+      .row label { flex:0 0 160px;font-size:12px;color:var(--ned-label); }
       .field-wrap { flex:1;min-width:0;display:flex; }
-      input[type=text],input[type=number],select { flex:1;width:100%;padding:4px 8px;border:1px solid var(--divider-color);border-radius:4px;background:var(--card-background-color);color:var(--primary-text-color);font-size:12px;outline:none;box-sizing:border-box; }
+      input[type=text],input[type=number],select { flex:1;width:100%;padding:4px 8px;border:1px solid var(--ned-line);border-radius:4px;background:var(--card-background-color);color:var(--primary-text-color);font-size:12px;outline:none;box-sizing:border-box; }
       select { cursor:pointer; }
       input:focus,select:focus { box-shadow:0 0 0 1px var(--primary-color); }
       .color-row { display:flex;gap:8px;flex:1; }
       .color-row input[type=text] { flex:1; }
       .color-row input[type=color] { width:36px;height:28px;flex:none;padding:0;border:none;background:none;border-radius:4px;cursor:pointer; }
-      .hint { font-size:11px;color:var(--secondary-text-color);font-style:italic;margin:-2px 0 6px 168px; }
+      .hint { font-size:11px;color:var(--ned-dim);font-style:italic;margin:-2px 0 6px 168px; }
       details { margin:10px 0; }
       summary { cursor:pointer; font-size:11px; font-weight:700; letter-spacing:1px; color:var(--primary-color); text-transform:uppercase; padding:6px 8px; background:rgba(var(--rgb-primary-color,98,0,234),.08); border:1px solid rgba(var(--rgb-primary-color,98,0,234),.2); border-radius:6px; }
       details .adv-inner { padding:10px 0 2px 10px; border-left:2px solid var(--divider-color); margin-left:4px; }
@@ -1049,124 +1079,99 @@ class NeonDualThermoCardEditor extends HTMLElement {
   // ║  SCHÉMA — LA SEULE PARTIE À ÉCRIRE PAR CARD                     ║
   // ╚════════════════════════════════════════════════════════════════╝
   _schema() {
-    this._section('Vent (optionnel)');
-    this._entity('entity_wind', 'Capteur vent', 'sensor');
-    this._text('name_wind', 'Nom vent', 'VENT');
-    this._text('wind_unit', 'Unité vent', 'km/h');
-    this._entity('entity_bg_pressure', 'Pression (graph fond)', 'sensor');
-    this._hint('Optionnel — tracé discret derrière les thermos');
-
-    this._section('Thermomètre Gauche');
-    this._entity('entity_left', 'Température gauche (requis)', 'sensor');
-    this._text('name_left', 'Nom / pièce gauche', 'SALON');
-    this._entity('humidity_entity_left', 'Humidité gauche', 'sensor');
-    this._entity('secondary_entity_left', 'Capteur secondaire gauche', 'sensor');
-    this._text('secondary_label_left', 'Label capteur sec. gauche', 'LUMINOSITY');
-    this._text('secondary_unit_left', 'Unité capteur sec. gauche', 'lx');
-
-    this._section('Thermomètre Droit');
-    this._entity('entity_right', 'Température droite (requis)', 'sensor');
-    this._text('name_right', 'Nom / pièce droite', 'CHAMBRE');
-    this._entity('humidity_entity_right', 'Humidité droite', 'sensor');
-    this._entity('secondary_entity_right', 'Capteur secondaire droit', 'sensor');
-    this._text('secondary_label_right', 'Label capteur sec. droit', 'CO2');
-    this._text('secondary_unit_right', 'Unité capteur sec. droit', 'ppm');
-
     this._section('Échelle (défauts partagés)');
     this._number('temp_min', 'Temp min (°C)', { min: -50, max: 50, step: 1 });
     this._number('temp_max', 'Temp max (°C)', { min: 0, max: 100, step: 1 });
     this._number('decimal_places', 'Décimales', { min: 0, max: 2, step: 1 });
     this._text('unit', 'Unité', '°C');
 
-    const advL = document.createElement('details'); this.appendChild(advL);
-    const sumL = document.createElement('summary'); sumL.textContent = _t('Overrides Gauche (optionnel)'); advL.appendChild(sumL);
-    const innerL = document.createElement('div'); innerL.className = 'adv-inner'; advL.appendChild(innerL);
-    this._appendTo = innerL;
-    this._number('temp_min_left', 'Min gauche', { min: -50, max: 50, step: 1, ph: 'Ex: 16 pour intérieur' });
-    this._number('temp_max_left', 'Max gauche', { min: 0, max: 100, step: 1, ph: 'Ex: 28 pour intérieur' });
-    this._text('zone_thresholds_left', 'Seuils zones gauche', '5, 15, 22, 28');
-    this._hint('4 seuils séparés par virgules ex: 18, 20, 23, 26');
-    this._color('color_zone1_left', 'Zone 1 gauche', null, '#0099FF');
-    this._color('color_zone2_left', 'Zone 2 gauche', null, '#00E8FF');
-    this._color('color_zone3_left', 'Zone 3 gauche', null, '#00FFB3');
-    this._color('color_zone4_left', 'Zone 4 gauche', null, '#FF9D00');
-    this._color('color_zone5_left', 'Zone 5 gauche', null, '#FF2D78');
-    this._color('color_plasma_ring1_left', 'Plasma anneau 1 gauche', null, '#00FFB3');
-    this._color('color_plasma_ring2_left', 'Plasma anneau 2 gauche', null, '#FF2D78');
-    this._number('plasma_saturation_left', 'Saturation plasma gauche', { min: 0.5, max: 3, step: 0.1 });
-    this._appendTo = null;
+    // Thermomètre sans entité = card neuve : panneau ouvert pour qu'on la renseigne d'abord.
+    [['left', 'Gauche', 'gauche', 'SALON', 'LUMINOSITY', 'lx', 'Ex: 16 pour intérieur', 'Ex: 28 pour intérieur', '18, 20, 23, 26'],
+     ['right', 'Droit', 'droit', 'CHAMBRE', 'CO2', 'ppm', 'Ex: -10 pour extérieur', 'Ex: 35 pour extérieur', '5, 15, 22, 28']]
+      .forEach(([s, Side, side, room, secLbl, secUnit, phMin, phMax, thr]) => {
+        const f = side === 'gauche' ? 'gauche' : 'droite';
+        this._group('Thermomètre ' + Side, !this._read('entity_' + s), () => {
+          this._entity('entity_' + s, `Température ${f} (requis)`, 'sensor');
+          this._text('name_' + s, `Nom / pièce ${f}`, room);
+          this._entity('humidity_entity_' + s, `Humidité ${f}`, 'sensor');
+          this._entity('secondary_entity_' + s, `Capteur secondaire ${side}`, 'sensor');
+          this._text('secondary_label_' + s, `Label capteur sec. ${side}`, secLbl);
+          this._text('secondary_unit_' + s, `Unité capteur sec. ${side}`, secUnit);
+          this._group('Échelle & couleurs (override)', false, () => {
+            this._number(`temp_min_${s}`, `Min ${f}`, { min: -50, max: 50, step: 1, ph: phMin });
+            this._number(`temp_max_${s}`, `Max ${f}`, { min: 0, max: 100, step: 1, ph: phMax });
+            this._text(`zone_thresholds_${s}`, `Seuils zones ${f}`, '5, 15, 22, 28');
+            this._hint(`4 seuils séparés par virgules ex: ${thr}`);
+            [1, 2, 3, 4, 5].forEach(n => this._color(`color_zone${n}_${s}`, `Zone ${n} ${f}`, null,
+              ['#0099FF', '#00E8FF', '#00FFB3', '#FF9D00', '#FF2D78'][n - 1]));
+            this._color(`color_plasma_ring1_${s}`, `Plasma anneau 1 ${f}`, null, '#00FFB3');
+            this._color(`color_plasma_ring2_${s}`, `Plasma anneau 2 ${f}`, null, '#FF2D78');
+            this._number(`plasma_saturation_${s}`, `Saturation plasma ${f}`, { min: 0.5, max: 3, step: 0.1 });
+          });
+          this._group('Actions (tap / appui long)', false, () => {
+            this._text('tap_action_' + s, 'Tap action', '{"action":"more-info"}');
+            this._hint('JSON: more-info, navigate, call-service, toggle, none');
+            this._text('hold_action_' + s, 'Hold action', '{"action":"none"}');
+          });
+        });
+      });
 
-    const advR = document.createElement('details'); this.appendChild(advR);
-    const sumR = document.createElement('summary'); sumR.textContent = _t('Overrides Droite (optionnel)'); advR.appendChild(sumR);
-    const innerR = document.createElement('div'); innerR.className = 'adv-inner'; advR.appendChild(innerR);
-    this._appendTo = innerR;
-    this._number('temp_min_right', 'Min droite', { min: -50, max: 50, step: 1, ph: 'Ex: -10 pour extérieur' });
-    this._number('temp_max_right', 'Max droite', { min: 0, max: 100, step: 1, ph: 'Ex: 35 pour extérieur' });
-    this._text('zone_thresholds_right', 'Seuils zones droite', '5, 15, 22, 28');
-    this._hint('4 seuils séparés par virgules ex: 5, 15, 22, 28');
-    this._color('color_zone1_right', 'Zone 1 droite', null, '#0099FF');
-    this._color('color_zone2_right', 'Zone 2 droite', null, '#00E8FF');
-    this._color('color_zone3_right', 'Zone 3 droite', null, '#00FFB3');
-    this._color('color_zone4_right', 'Zone 4 droite', null, '#FF9D00');
-    this._color('color_zone5_right', 'Zone 5 droite', null, '#FF2D78');
-    this._color('color_plasma_ring1_right', 'Plasma anneau 1 droite', null, '#00FFB3');
-    this._color('color_plasma_ring2_right', 'Plasma anneau 2 droite', null, '#FF2D78');
-    this._number('plasma_saturation_right', 'Saturation plasma droite', { min: 0.5, max: 3, step: 0.1 });
-    this._appendTo = null;
+    this._group('Vent (optionnel)', false, () => {
+      this._entity('entity_wind', 'Capteur vent', 'sensor');
+      this._text('name_wind', 'Nom vent', 'VENT');
+      this._text('wind_unit', 'Unité vent', 'km/h');
+      this._entity('entity_bg_pressure', 'Pression (graph fond)', 'sensor');
+      this._hint('Optionnel — tracé discret derrière les thermos');
+    });
 
-    this._section('Polices');
-    this._text('name_font_family', 'Police nom', 'Rajdhani, monospace');
-    this._hint('Vide = thème HA');
-    this._text('name_font_size', 'Taille nom', '12px');
-    this._text('value_font_family', 'Police valeur', 'Rajdhani, monospace');
-    this._text('value_font_size', 'Taille valeur', '28px');
-    this._text('sensor_font_family', 'Police capteurs', 'Rajdhani, monospace');
-    this._hint('Humidité, secondaire…');
-    this._text('sensor_font_size', 'Taille capteurs', '24px');
+    this._group('Affichage', false, () => {
+      this._toggle('show_plasma', 'Réacteur plasma', false);
+      this._toggle('show_history', 'Historique', false);
+      this._number('animation_speed', 'Vitesse animations', { min: 0.2, max: 5, step: 0.1 });
+      this._number('history_hours', 'Heures historique', { min: 1, max: 168, step: 1, ph: '24' });
+      this._number('plasma_saturation', 'Saturation plasma', { min: 0.5, max: 3, step: 0.1, ph: '1.8' });
+      this._hint('1=normal, 2=ultra saturé (défaut: 1.8)');
+      this._group('Polices', false, () => {
+        this._text('name_font_family', 'Police nom', 'Rajdhani, monospace');
+        this._hint('Vide = thème HA');
+        this._text('name_font_size', 'Taille nom', '12px');
+        this._text('value_font_family', 'Police valeur', 'Rajdhani, monospace');
+        this._text('value_font_size', 'Taille valeur', '28px');
+        this._text('sensor_font_family', 'Police capteurs', 'Rajdhani, monospace');
+        this._hint('Humidité, secondaire…');
+        this._text('sensor_font_size', 'Taille capteurs', '24px');
+      });
+    });
 
-    this._section('Affichage');
-    this._toggle('show_plasma', 'Réacteur plasma', false);
-    this._toggle('show_history', 'Historique', false);
-    this._number('animation_speed', 'Vitesse animations', { min: 0.2, max: 5, step: 0.1 });
-    this._number('history_hours', 'Heures historique', { min: 1, max: 168, step: 1, ph: '24' });
-    this._number('plasma_saturation', 'Saturation plasma', { min: 0.5, max: 3, step: 0.1, ph: '1.8' });
-    this._hint('1=normal, 2=ultra saturé (défaut: 1.8)');
+    this._group('Couleurs (vide = thème HA)', false, () => {
+      this._color('color_primary', 'Couleur gauche', null, '#00E8FF');
+      this._color('color_secondary', 'Couleur droite', null, '#E946FF');
+      this._color('color_background', 'Fond intérieur', null, '#04060b');
+      this._group('Gradient mercure', false, () => {
+        this._hint('Partagé — chaque thermomètre peut le surcharger dans son panneau');
+        this._color('color_zone1', 'Zone 1 (seuil 1)', null, '#0099FF');
+        this._color('color_zone2', 'Zone 2 (seuil 2)', null, '#00E8FF');
+        this._color('color_zone3', 'Zone 3 (seuil 3)', null, '#00FFB3');
+        this._color('color_zone4', 'Zone 4 (seuil 4)', null, '#FF9D00');
+        this._color('color_zone5', 'Zone 5 (au-delà)', null, '#FF2D78');
+      });
+      this._group('Anneaux plasma', false, () => {
+        this._hint('Partagé — chaque thermomètre peut le surcharger dans son panneau');
+        this._color('color_plasma_ring1', 'Anneau 1 (horizontal)', null, '#00FFB3');
+        this._color('color_plasma_ring2', 'Anneau 2 (vertical)', null, '#FF2D78');
+      });
+    });
 
-    this._section('🐾 Easter-egg GLITCH');
-    this._hint('chat sur la courbe la plus froide');
-    this._toggle('glitch_cat', 'Activer GLITCH', false);
-    this._hint('Le chat se matérialise en hologramme glitché Silverhand sur la sparkline');
-    this._number('glitch_cat_chance', 'Fréquence', { min: 0, max: 1, step: 0.01, ph: '0.12' });
-    this._hint('Proba par tick (~6 s). 0.12 ≈ 1 apparition/50 s');
-    this._number('glitch_cat_size', 'Taille (px)', { min: 14, max: 48, step: 1, ph: '26' });
-    this._text('glitch_cat_image', 'Image (GIF)', '/local/cat-walking-white.gif');
-    this._hint('Sprite marcheur — défaut: cat-walking-white.gif');
-
-    this._section('Actions Gauche (tap / appui long)');
-    this._text('tap_action_left', 'Tap action', '{"action":"more-info"}');
-    this._hint('JSON: more-info, navigate, call-service, toggle, none');
-    this._text('hold_action_left', 'Hold action', '{"action":"none"}');
-
-    this._section('Actions Droite (tap / appui long)');
-    this._text('tap_action_right', 'Tap action', '{"action":"more-info"}');
-    this._hint('JSON: idem');
-    this._text('hold_action_right', 'Hold action', '{"action":"none"}');
-
-    this._section('Couleurs (vide = thème HA)');
-    this._color('color_primary', 'Couleur gauche', null, '#00E8FF');
-    this._color('color_secondary', 'Couleur droite', null, '#E946FF');
-
-    this._section('Gradient Mercure (partagé — override dans ▶ ci-dessus)');
-    this._color('color_zone1', 'Zone 1 (seuil 1)', null, '#0099FF');
-    this._color('color_zone2', 'Zone 2 (seuil 2)', null, '#00E8FF');
-    this._color('color_zone3', 'Zone 3 (seuil 3)', null, '#00FFB3');
-    this._color('color_zone4', 'Zone 4 (seuil 4)', null, '#FF9D00');
-    this._color('color_zone5', 'Zone 5 (au-delà)', null, '#FF2D78');
-    this._color('color_background', 'Fond intérieur', null, '#04060b');
-
-    this._section('Anneaux Plasma (partagé — override dans ▶ ci-dessus)');
-    this._color('color_plasma_ring1', 'Anneau 1 (horizontal)', null, '#00FFB3');
-    this._color('color_plasma_ring2', 'Anneau 2 (vertical)', null, '#FF2D78');
+    this._group('🐾 Easter-egg GLITCH', false, () => {
+      this._hint('chat sur la courbe la plus froide');
+      this._toggle('glitch_cat', 'Activer GLITCH', false);
+      this._hint('Le chat se matérialise en hologramme glitché Silverhand sur la sparkline');
+      this._number('glitch_cat_chance', 'Fréquence', { min: 0, max: 1, step: 0.01, ph: '0.12' });
+      this._hint('Proba par tick (~6 s). 0.12 ≈ 1 apparition/50 s');
+      this._number('glitch_cat_size', 'Taille (px)', { min: 14, max: 48, step: 1, ph: '26' });
+      this._text('glitch_cat_image', 'Image (GIF)', '/local/cat-walking-white.gif');
+      this._hint('Sprite marcheur — défaut: cat-walking-white.gif');
+    });
   }
 }
 customElements.define('neon-dual-thermo-card-editor', NeonDualThermoCardEditor);
