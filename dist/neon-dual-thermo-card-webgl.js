@@ -33,7 +33,7 @@
  * v1.0.0 : fork WebGL de neon-dual-thermo-card v2.3.0
  */
 
-const VERSION = '1.2.3';
+const VERSION = '1.2.4';
 
 // Device detection — iPad/mobile : modère les anneaux plasma (rotation ralentie +
 // glow allégé) pour soulager le GPU. Détection userAgent (fiable en paysage).
@@ -51,7 +51,7 @@ function _parseAction(val, fallback) {
 }
 
 // YAML peut livrer des nombres en texte ; '' / null / NaN → null pour que le
-// ?? qui suit rende la main au défaut du banc d'essai.
+// ?? qui suit rende la main au défaut.
 function _num(v) {
   if (v === null || v === undefined || v === '') return null;
   const n = typeof v === 'number' ? v : parseFloat(v);
@@ -3093,7 +3093,7 @@ class NeonDualThermoCardWebgl extends HTMLElement {
     cv.className = 'wgl-canvas';
 
     // ORDRE CRITIQUE : contexte GL d'ABORD, dépouillement du verre SVG ENSUITE.
-    // Le banc faisait l'inverse, ce qui rendait le repli SVG inatteignable
+    // L'ordre inverse rendait le repli SVG inatteignable
     // (leçon de linux-terminal-card-webgl) : si makeGl jette, le verre a déjà
     // disparu et la card affiche un tube nu au lieu de son rendu d'origine.
     let ctx = null;
