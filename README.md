@@ -17,15 +17,9 @@
 
 Outdoor on one side, indoors on the other, one card. Each thermometer is a glass tube that refracts what sits behind the card, filled with a liquid whose colour follows five temperature zones. The bulb holds a small plasma reactor whose arcs get more nervous as the temperature rises, and air bubbles climb faster when it is hot. Underneath, a 24 h history graph draws both curves, with an optional pressure trace in the background.
 
-<img src="https://raw.githubusercontent.com/cerealkiller57540/neon-dual-thermo-card/main/images/variants.png" alt="The CSS card (left) and the WebGL card (right) with the same data, without any theme" width="800">
-
-*Left: `neon-dual-thermo-card` (SVG/CSS). Right: `neon-dual-thermo-card-webgl`. Same data, no theme.*
-
 ## ✨ Features
 
-- **Two cards in one install**
-  - `neon-dual-thermo-card-webgl`: refracting glass, liquid, plasma and bubbles rendered by a WebGL shader (recommended).
-  - `neon-dual-thermo-card`: lighter version, same layout, drawn in SVG/CSS.
+- `neon-dual-thermo-card-webgl`: refracting glass, liquid, plasma and bubbles rendered by a WebGL shader.
 - **Five colour zones** per thermometer, with your own thresholds, shared or per side.
 - **Secondary readouts** under each thermometer: humidity, plus any sensor you like (pressure, illuminance, CO₂…) with its own label and unit.
 - **History graph** of both temperatures over the last N hours, with an optional background pressure curve.
@@ -42,11 +36,13 @@ Outdoor on one side, indoors on the other, one card. Each thermometer is a glass
 2. Download **Neon Dual Thermometer Card**.
 3. Reload your browser.
 
-HACS registers one resource, `neon-dual-thermo-card.js`. It loads the WebGL variant on its own, so **do not** add `neon-dual-thermo-card-webgl.js` as a second resource.
+HACS registers one resource, `neon-dual-thermo-card.js`. The card type is `custom:neon-dual-thermo-card-webgl`.
+
+If you used the former CSS card (`custom:neon-dual-thermo-card`), change its type to `custom:neon-dual-thermo-card-webgl`: the CSS version is no longer shipped.
 
 ### Manual
 
-1. Copy both files from [`dist/`](dist) to `config/www/neon-dual-thermo-card/`.
+1. Copy [`dist/neon-dual-thermo-card.js`](dist/neon-dual-thermo-card.js) to `config/www/neon-dual-thermo-card/`.
 2. Add a dashboard resource: URL `/local/neon-dual-thermo-card/neon-dual-thermo-card.js`, type **JavaScript module**.
 
 ## 🚀 Usage
@@ -100,8 +96,6 @@ Every per-side option exists as `…_left` and `…_right`.
 | `glitch_cat` | bool | `false` | A glitching cat walks along the coldest curve now and then (see FAQ) |
 | `glitch_cat_image` / `glitch_cat_size` / `glitch_cat_chance` | string / number / number | — / `26` / `0.12` | Its image, height in px and chance per tick (~6 s) |
 
-**WebGL card only**
-
 | Option | Default | Description |
 |---|---|---|
 | `wgl_enabled` | `true` | `false` = draw the SVG thermometers instead |
@@ -122,7 +116,7 @@ The other `wgl_*` settings (`chroma`, `fresnel`, `menisc`, `ripple`, `liq_body`,
 
 **Where is the cat?** `glitch_cat` is off by default and no image ships with the card. Point `glitch_cat_image` at your own transparent GIF or PNG (for example `/local/my-cat.gif` in `config/www/`).
 
-**Some cards go blank on my Android phone.** Android WebViews keep at most 8 WebGL contexts per page and drop the oldest one. This card uses a single context for both thermometers. If you run many WebGL cards on one view, use `neon-dual-thermo-card` (SVG) or `wgl_enabled: false` on some of them.
+**Some cards go blank on my Android phone.** Android WebViews keep at most 8 WebGL contexts per page and drop the oldest one. This card uses a single context for both thermometers. If you run many WebGL cards on one view, use `wgl_enabled: false` on some of them.
 
 **Which theme is in the screenshots?** Neo Tokyo, the author's own dark theme (not published). The card works with any theme.
 
