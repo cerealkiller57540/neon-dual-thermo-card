@@ -1,5 +1,5 @@
 /**
- * neon-dual-thermo-card-webgl v2.6.1
+ * neon-dual-thermo-card-webgl v2.6.2
  * Double thermomètre néon — variante WebGL de neon-dual-thermo-card
  *
  * Card SÉPARÉE : neon-dual-thermo-card.js n'est pas touchée et reste utilisable.
@@ -33,7 +33,7 @@
  * v1.0.0 : fork WebGL de neon-dual-thermo-card v2.3.0
  */
 
-const VERSION = '2.6.1';
+const VERSION = '2.6.2';
 
 // Device detection — iPad/mobile : modère les anneaux plasma (rotation ralentie +
 // glow allégé) pour soulager le GPU. Détection userAgent (fiable en paysage).
@@ -3438,6 +3438,26 @@ class NeonDualThermoCardWebgl extends HTMLElement {
   }
 }
 
+// Une valeur de config interpolée dans un <style> ne doit pas pouvoir le refermer.
+function _ndtCfgSafe(v, path) {
+  if (typeof v === 'string') return v.replace(/<\/(style)/gi, '<\\/$1');
+  if (!v || typeof v !== 'object') return v;
+  const isArr = Array.isArray(v);
+  let out = v;
+  for (const k of Object.keys(v)) {
+    const p = isArr ? path : (path ? path + '.' + k : k);
+    const nv = _ndtCfgSafe(v[k], p);
+    if (nv !== v[k]) {
+      if (out === v) out = isArr ? v.slice() : { ...v };
+      out[k] = nv;
+    }
+  }
+  return out;
+}
+{
+  const _setCfg = NeonDualThermoCardWebgl.prototype.setConfig;
+  NeonDualThermoCardWebgl.prototype.setConfig = function (c) { return _setCfg.call(this, _ndtCfgSafe(c, '')); };
+}
 customElements.define('neon-dual-thermo-card-webgl', NeonDualThermoCardWebgl);
 
 // Banner
